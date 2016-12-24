@@ -1,0 +1,23 @@
+{
+  "name": "simple-physics",
+  "version": "0.0.1",
+  "description": "Simple Physics sample",
+  "main": "lib/index.js",
+  "types": "lib/index",
+  "author": {
+    "name": "Eric Pattison",
+    "email": "epattison@bastiongames.com",
+    "url": "http://evileric.com"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "tinker-game": "latest",
+    "tinker-physics-euler": "0.0.1"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  },
+  "files": [
+    "lib"
+  ]
+}
