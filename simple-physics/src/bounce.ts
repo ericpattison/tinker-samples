@@ -1,4 +1,4 @@
-import {Updater} from 'tinker-game';
+import {Updater, UpdateContext} from 'tinker-game';
 import{PhysicsObject} from 'tinker-physics-euler';
 
 export class Bounce extends Updater {
@@ -13,8 +13,8 @@ export class Bounce extends Updater {
         this.entities.push(entity);
     }
 
-    public *invoke(next:any, dt:number) {
-        yield* next;
+    public invoke(context:UpdateContext, next:Function) {
+        next();
         for(let i = 0; i < this.entities.length; ++i) {
             let entity = this.entities[i];
             if(entity.pos.y >= this.bound) {

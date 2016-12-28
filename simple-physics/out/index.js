@@ -41,8 +41,8 @@ class Bounce extends tinker_game_1.Updater {
     add(entity) {
         this.entities.push(entity);
     }
-    *invoke(next, dt) {
-        yield* next;
+    invoke(context, next) {
+        next();
         for (let i = 0; i < this.entities.length; ++i) {
             let entity = this.entities[i];
             if (entity.pos.y >= this.bound) {
@@ -104,6 +104,7 @@ tinker_core_1.Tinker(SimplePhysics);
 class Component extends HTMLElement {
     constructor() {
         super();
+        this.prepareVisibilityApi();
     }
     createShadowRoot() {
         if (!this.root) {
@@ -121,6 +122,18 @@ class Component extends HTMLElement {
     }
     adoptedCallback() {
     }
+    prepareVisibilityApi() {
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                this.pause();
+            }
+            else {
+                this.resume();
+            }
+        });
+    }
+    pause() { }
+    resume() { }
 }
 exports.Component = Component;
 
@@ -376,6 +389,9 @@ class Timer {
         this.last = now;
         return dt / 1000.0;
     }
+    reset() {
+        this.last = new Date().getTime();
+    }
 }
 exports.Timer = Timer;
 
@@ -409,23 +425,35 @@ class Game extends tinker_core_1.Component {
     onKeyDown(code) { }
     onKeyUp(code) { }
     onKeyPress(code) { }
+    pause() { super.pause(); }
+    resume() {
+        super.resume();
+        this.gameTimer.reset();
+    }
     frame() {
         let dt = this.gameTimer.delta();
-        let self = this;
-        let f = (function* () {
-            self.update(dt);
-        })();
-        this.doUpdate(f, dt);
+        let updates = this.doUpdates();
+        updates({ deltaTime: dt }, function (context) {
+            this.update(context);
+        });
         this.render(this.backBuffer);
         this.frontBuffer.draw(this.backBuffer);
         requestAnimationFrame(() => this.frame());
     }
-    doUpdate(next, dt) {
-        var i = this.updateServices.length;
-        while (i--) {
-            next = this.updateServices[i].invoke.call(this.updateServices[i], next, dt);
-        }
-        next.next();
+    doUpdates() {
+        let middleware = this.updateServices;
+        let self = this;
+        return function (context, next) {
+            let index = -1;
+            return dispatch(0);
+            function dispatch(i) {
+                if (i > index) {
+                    index = i;
+                    let fn = (i === middleware.length) ? next : middleware[i].invoke;
+                    fn.call(middleware[i] || self, context, () => { return dispatch(i + 1); });
+                }
+            }
+        };
     }
     connectedCallback() {
         this.frontBuffer = new canvas_1.Canvas2D({ width: this.width, height: this.height });
@@ -674,6 +702,8 @@ class EulerPhysics extends tinker_physics_1.Physics {
     integrate(dt) {
         for (let i = 0, n = this.entities.length; i < n; ++i) {
             let entity = this.entities[i];
+            if (entity.inverseMass === 0)
+                continue;
             let position = new tinker_core_1.Vector2D(entity.pos);
             position = position.add(entity.velocity.mul(dt));
             entity.pos.x = position.x;
@@ -707,17 +737,12 @@ exports.Particle2D = Particle2D;
 "use strict";
 const tinker_game_1 = require("tinker-game");
 class Physics extends tinker_game_1.Updater {
-    *invoke(next, dt) {
-        this.integrate(dt);
-        yield* next;
+    invoke(context, next) {
+        this.integrate(context.deltaTime);
+        next();
     }
 }
 exports.Physics = Physics;
-function physics(target, propertyKey) {
-    console.log(target);
-    console.log(propertyKey);
-}
-exports.physics = physics;
 
 },{"tinker-game":14}],19:[function(require,module,exports){
 "use strict";
