@@ -1,4 +1,4 @@
-import {Game, Canvas2D} from 'tinker-game';
+import {Game, UpdateContext, Canvas2D} from 'tinker-game';
 import {Tinker, ColorRGB, Vector2D} from 'tinker-core';
 import {EulerPhysics} from 'tinker-physics-euler';
 
@@ -50,7 +50,7 @@ export class SimplePhysics extends Game {
         this.onUpdate(this.collision);
     }
 
-    update(dt: number): void { }
+    update(dt: UpdateContext): void { }
 
     render(surface: Canvas2D) {
         surface.clear({fill:this.clearColor});
